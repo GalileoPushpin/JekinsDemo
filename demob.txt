@@ -1,2 +1,6 @@
 This is a Demo for git.
+<<<<<<< Updated upstream
 Add GitHub modify.
+=======
+Add test.
+>>>>>>> Stashed changes
