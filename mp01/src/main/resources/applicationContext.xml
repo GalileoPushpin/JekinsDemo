@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"  
+	xmlns:jee="http://www.springframework.org/schema/jee" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.1.xsd
+		http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.1.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.1.xsd">
+     
+    <!-- 扫描 -->
+	<context:component-scan base-package="com"/>
+	
+	<!--配置数据源 -->
+	<context:property-placeholder location="classpath:db.properties" />
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+	   <property name="driverClass" value="${jdbc.driver}" />
+	   <property name="jdbcUrl" value="${jdbc.url}" />
+	   <property name="user" value="${jdbc.username}" />
+	   <property name="password" value="${jdbc.password}" />
+	</bean>
+	
+	<!--mybatis的sqlSessionFactory 替换为MP的。。。-->
+	<bean id="sqlSessionFactory" class="com.baomidou.mybatisplus.spring.MybatisSqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!--加载mybatis主配置文件 -->
+		<property name="configLocation" value="classpath:mybatis-config.xml"></property>
+		<!-- 别名处理 -->
+		<property name="typeAliasesPackage" value="com.aiguigu.mp.beans"></property>
+		<!-- 注入MP全局策略 -->
+		<property name="globalConfig" ref="globalConfiguration"></property>
+	</bean>
+	
+	<!--DAO接口所在包名,spring会自动查找其下的类 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.aiguigu.mp.mapper"></property>
+	</bean>
+	
+	<!-- MP的全局策略配置 -->
+	<bean id="globalConfiguration" class="com.baomidou.mybatisplus.entity.GlobalConfiguration">
+		<!-- 2.3默认支持 驼峰命名转换 -->
+		<property name="dbColumnUnderline" value="false"></property>
+		<!-- 全局主键策略 -->
+		<property name="idType" value="0"></property>
+		<!-- 全局表前缀策略 -->
+		<property name="tablePrefix" value="tbl_"></property>
+	</bean>
+	
+	<!-- 事务管理器 -->
+	<bean id="dataSourceTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- 基于注解的事务管理器 -->
+	<tx:annotation-driven transaction-manager="dataSourceTransactionManager" />
+	
+	<!-- 测试Bean的生命周期 -->
+	<bean id="student" class="com.aiguigu.mp.beans.Student" init-method="initStudent" destroy-method="destroyStudent">
+		<property name="name" value="Galileo"></property>
+	</bean>
+	<!-- 配置bean的后置处理器,不需要id，IoC容器自动识别是一个BeanPostProcessor -->
+	<!--<bean class="com.aiguigu.mp.beans.MyBeanPostProcessor"></bean> -->
+		
+</beans>
